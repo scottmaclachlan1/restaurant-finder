@@ -4,16 +4,16 @@ A modern, interactive web application that helps users discover and save restaur
 
 ## Features
 
-- Location-Based Search**: Automatically finds restaurants within 1.5km of your current location
-- ** Swipe Interface**: Tinder-like swipe gestures to browse through restaurant options
-- ** Save Favorites**: Swipe right to save restaurants to your personal collection
-- ** Restaurant Photos**: Displays high-quality photos from Google Places API
-- ** Ratings Display**: Shows restaurant ratings and reviews
-- ** Responsive Design**: Works seamlessly on desktop and mobile devices
-- ** Cached Location**: Remembers your location for 10 minutes to reduce API calls
-- ** Offline Support**: View saved restaurants even without internet connection
-- ** Manual Location Input**: Fallback option for testing when location permissions are blocked
-- ** Modern UI**: Toast notifications, smooth animations, and visual swipe feedback
+- **Location-Based Search**: Automatically finds restaurants within 1.5km of your current location
+- **Swipe Interface**: Tinder-like swipe gestures to browse through restaurant options
+- **Save Favorites**: Swipe right to save restaurants to your personal collection
+- **Restaurant Photos**: Displays high-quality photos from Google Places API
+- **Ratings Display**: Shows restaurant ratings and reviews
+- **Responsive Design**: Works seamlessly on desktop and mobile devices
+- **Cached Location**: Remembers your location for 10 minutes to reduce API calls
+- **Offline Support**: View saved restaurants even without internet connection
+- **Manual Location Input**: Fallback option for testing when location permissions are blocked
+- **Modern UI**: Toast notifications, smooth animations, and visual swipe feedback
 
 ## Tech Stack
 
