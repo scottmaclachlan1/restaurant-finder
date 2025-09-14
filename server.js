@@ -9,9 +9,23 @@ const fs = require('fs');
 const { filterByCuisine } = require('./utils/cuisineFilter');
 const app = express();
 
+// Security headers
+app.use((req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  next();
+});
+
 app.use(cors());
 app.use(express.json());
-app.use(express.static('.')); // Serve static files from current directory
+
+// Static file serving with caching
+app.use(express.static('.', {
+  maxAge: '1d', // Cache static files for 1 day
+  etag: true
+}));
 
 
 const GOOGLE_API_KEY = process.env.GOOGLE_PLACES_API_KEY;
@@ -96,6 +110,15 @@ app.get('/api/photo', async (req, res) => {
 // Serve the main page
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+// 404 handler
+app.use('*', (req, res) => {
+  res.status(404).json({
+    error: 'Not Found',
+    message: 'The requested resource was not found',
+    path: req.originalUrl
+  });
 });
 
 const PORT = process.env.PORT || 3001;
