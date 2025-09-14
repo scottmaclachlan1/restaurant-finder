@@ -13,6 +13,7 @@ A modern, interactive web application that helps users discover and save restaur
 - **Cached Location**: Remembers your location for 10 minutes to reduce API calls
 - **Offline Support**: View saved restaurants even without internet connection
 - **Manual Location Input**: Fallback option for testing when location permissions are blocked
+- **Cuisine Filtering**: Filter restaurants by cuisine type (Italian, Chinese, Mexican, etc.)
 - **Modern UI**: Toast notifications, smooth animations, and visual swipe feedback
 
 ## Tech Stack

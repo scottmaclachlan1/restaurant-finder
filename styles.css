@@ -59,6 +59,43 @@ button:hover {
     margin: 2rem 0;
 }
 
+.filter-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.filter-section label {
+    font-weight: bold;
+    color: darkgreen;
+    font-size: 16px;
+}
+
+.filter-section select {
+    font-family: "Savate", sans-serif;
+    font-size: 16px;
+    padding: 0.5rem 1rem;
+    border: 2px solid darkgreen;
+    border-radius: 8px;
+    background-color: white;
+    color: darkgreen;
+    outline: none;
+    min-width: 200px;
+    cursor: pointer;
+}
+
+.filter-section select:hover {
+    border-color: #2e7d32;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.filter-section select:focus {
+    border-color: #2e7d32;
+    box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.1);
+}
+
 .loading {
     text-align: center;
     margin: 2rem 0;

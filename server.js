@@ -21,7 +21,7 @@ if (!GOOGLE_API_KEY) {
 }
 
 app.get('/api/restaurants', async (req, res) => {
-  const { lat, lng } = req.query;
+  const { lat, lng, cuisine } = req.query;
   
   if (!lat || !lng) {
     return res.status(400).json({ 
@@ -29,10 +29,11 @@ app.get('/api/restaurants', async (req, res) => {
     });
   }
   
+  // Get all restaurants first, then filter client-side for better results
   const url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=1500&type=restaurant&key=${GOOGLE_API_KEY}`;
   
   try {
-    console.log(`Fetching restaurants for location: ${lat}, ${lng}`);
+    console.log(`Fetching restaurants for location: ${lat}, ${lng}${cuisine ? ` with cuisine filter: ${cuisine}` : ''}`);
     const response = await fetch(url);
     const data = await response.json();
     
@@ -43,8 +44,17 @@ app.get('/api/restaurants', async (req, res) => {
       });
     }
     
-    console.log(`Found ${data.results?.length || 0} restaurants`);
-    res.json(data);
+    let filteredResults = data.results || [];
+    
+    // Apply cuisine filtering if specified
+    if (cuisine) {
+      const beforeCount = filteredResults.length;
+      filteredResults = filterByCuisine(filteredResults, cuisine);
+      console.log(`Filtered from ${beforeCount} to ${filteredResults.length} restaurants matching ${cuisine} cuisine`);
+    }
+    
+    console.log(`Found ${filteredResults.length} restaurants`);
+    res.json({ ...data, results: filteredResults });
   } catch (error) {
     console.error('Server error:', error);
     res.status(500).json({ 
@@ -52,6 +62,58 @@ app.get('/api/restaurants', async (req, res) => {
     });
   }
 });
+
+// Helper function to filter restaurants by cuisine
+function filterByCuisine(restaurants, cuisine) {
+  const cuisineKeywords = {
+    'italian': ['pizza', 'pasta', 'italian', 'pizzeria', 'trattoria', 'ristorante'],
+    'chinese': ['chinese', 'china', 'dim sum', 'cantonese', 'szechuan'],
+    'mexican': ['mexican', 'taco', 'burrito', 'mexico', 'mexicana', 'taqueria'],
+    'japanese': ['japanese', 'sushi', 'ramen', 'japan', 'sashimi', 'tempura', 'yakitori'],
+    'indian': ['indian', 'curry', 'india', 'tandoor', 'masala', 'biryani'],
+    'thai': ['thai', 'thailand', 'pad thai', 'tom yum', 'green curry'],
+    'american': ['american', 'burger', 'grill', 'bbq', 'steakhouse', 'diner'],
+    'french': ['french', 'bistro', 'france', 'brasserie', 'cafe'],
+    'mediterranean': ['mediterranean', 'greek', 'lebanese', 'turkish', 'falafel'],
+    'korean': ['korean', 'korea', 'bbq', 'kimchi', 'bulgogi'],
+    'vietnamese': ['vietnamese', 'pho', 'vietnam', 'banh mi'],
+    'greek': ['greek', 'gyro', 'greece', 'souvlaki', 'moussaka'],
+    'spanish': ['spanish', 'tapas', 'spain', 'paella', 'sangria'],
+    'german': ['german', 'bratwurst', 'germany', 'schnitzel', 'bier'],
+    'brazilian': ['brazilian', 'churrascaria', 'brazil', 'rodizio'],
+    'middle_eastern': ['middle eastern', 'arabic', 'persian', 'turkish', 'lebanese'],
+    'seafood': ['seafood', 'fish', 'oyster', 'lobster', 'crab', 'shrimp'],
+    'steakhouse': ['steak', 'steakhouse', 'prime', 'ribeye'],
+    'pizza': ['pizza', 'pizzeria', 'pie'],
+    'sushi': ['sushi', 'sashimi', 'roll', 'nigiri'],
+    'vegetarian': ['vegetarian', 'veggie', 'plant-based'],
+    'vegan': ['vegan', 'plant-based'],
+    'fast_food': ['fast food', 'quick', 'drive', 'takeout'],
+    'cafe': ['cafe', 'coffee', 'espresso', 'latte', 'cappuccino'],
+    'bakery': ['bakery', 'bread', 'pastry', 'croissant', 'muffin'],
+    'dessert': ['dessert', 'ice cream', 'sweet', 'gelato', 'cake', 'pie']
+  };
+  
+  const keywords = cuisineKeywords[cuisine.toLowerCase()];
+  if (!keywords) return restaurants;
+  
+  return restaurants.filter(restaurant => {
+    const name = restaurant.name?.toLowerCase() || '';
+    const types = restaurant.types || [];
+    
+    // Check restaurant name
+    if (keywords.some(keyword => name.includes(keyword))) {
+      return true;
+    }
+    
+    // Check Google Places types
+    if (types.some(type => keywords.some(keyword => type.toLowerCase().includes(keyword)))) {
+      return true;
+    }
+    
+    return false;
+  });
+}
 
 // API endpoint for photos
 app.get('/api/photo', async (req, res) => {

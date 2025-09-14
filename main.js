@@ -18,14 +18,24 @@ function getLocationCachedOrNew() {
   async function useLocation(lat, lng) {
     const loading = document.getElementById('loading');
     const container = document.querySelector('.cards');
+    const cuisineFilter = document.getElementById('cuisineFilter');
     
     // Show loading spinner
     loading.style.display = 'block';
     container.innerHTML = '';
     
     try {
+      // Get selected cuisine filter
+      const selectedCuisine = cuisineFilter.value;
+      
+      // Build API URL with cuisine filter if selected
+      let apiUrl = `${API_BASE_URL}/api/restaurants?lat=${lat}&lng=${lng}`;
+      if (selectedCuisine) {
+        apiUrl += `&cuisine=${encodeURIComponent(selectedCuisine)}`;
+      }
+      
       // Call backend API
-      const response = await fetch(`${API_BASE_URL}/api/restaurants?lat=${lat}&lng=${lng}`);
+      const response = await fetch(apiUrl);
       const data = await response.json();
       
       // Hide loading spinner
@@ -33,9 +43,11 @@ function getLocationCachedOrNew() {
       
       if (data.results && data.results.length > 0) {
         displayCards(data.results);
-        showMessage(`Found ${data.results.length} restaurants near you!`, 'success');
+        const cuisineText = selectedCuisine ? ` matching ${selectedCuisine} cuisine` : '';
+        showMessage(`Found ${data.results.length} restaurants near you${cuisineText}!`, 'success');
       } else {
-        container.innerHTML = '<div class="error-message">No restaurants found in your area. Try expanding your search radius or checking a different location.</div>';
+        const cuisineText = selectedCuisine ? ` matching ${selectedCuisine} cuisine` : '';
+        container.innerHTML = `<div class="error-message">No restaurants found in your area${cuisineText}. Try expanding your search radius, checking a different location, or selecting a different cuisine type.</div>`;
       }
     } catch (e) {
       console.error("Error fetching restaurants:", e);
@@ -59,17 +71,23 @@ function getLocationCachedOrNew() {
         ? `${API_BASE_URL}/api/photo?photoreference=${restaurant.photos[0].photo_reference}`
         : 'https://via.placeholder.com/250x150?text=No+Image';
 
+      // Determine cuisine type from restaurant data
+      const cuisineType = determineCuisineType(restaurant);
+      
       const restaurantData = {
         name: restaurant.name,
         place_id: restaurant.place_id,
         photo: imgUrl,
-        rating: restaurant.rating || 'N/A'
+        rating: restaurant.rating || 'N/A',
+        cuisine: cuisineType,
+        types: restaurant.types || []
       };
 
       card.innerHTML = `
         <img src="${imgUrl}" alt="${restaurant.name}" />
         <h3>${restaurant.name}</h3>
         <p>⭐️ Rating: ${restaurant.rating || 'N/A'}</p>
+        <p>🍽️ ${cuisineType}</p>
         <p><small>Swipe right to save 💖 or left to skip</small></p>
       `;
 
@@ -146,25 +164,97 @@ function getLocationCachedOrNew() {
     }
   }
 
+  function determineCuisineType(restaurant) {
+    const name = restaurant.name?.toLowerCase() || '';
+    const types = restaurant.types || [];
+    
+    // Simple keyword-based cuisine detection
+    const cuisineKeywords = {
+      'Italian': ['pizza', 'pasta', 'italian', 'pizzeria'],
+      'Chinese': ['chinese', 'china', 'dim sum'],
+      'Mexican': ['mexican', 'taco', 'burrito', 'mexico'],
+      'Japanese': ['japanese', 'sushi', 'ramen', 'japan'],
+      'Indian': ['indian', 'curry', 'india'],
+      'Thai': ['thai', 'thailand'],
+      'American': ['american', 'burger', 'grill', 'bbq'],
+      'French': ['french', 'bistro', 'france'],
+      'Mediterranean': ['mediterranean', 'greek', 'lebanese'],
+      'Korean': ['korean', 'korea'],
+      'Vietnamese': ['vietnamese', 'pho', 'vietnam'],
+      'Spanish': ['spanish', 'tapas', 'spain'],
+      'German': ['german', 'bratwurst', 'germany'],
+      'Brazilian': ['brazilian', 'churrascaria', 'brazil'],
+      'Middle Eastern': ['middle eastern', 'arabic', 'persian', 'turkish'],
+      'Seafood': ['seafood', 'fish', 'oyster', 'lobster'],
+      'Steakhouse': ['steak', 'steakhouse'],
+      'Pizza': ['pizza', 'pizzeria'],
+      'Sushi': ['sushi', 'sashimi'],
+      'Vegetarian': ['vegetarian', 'veggie'],
+      'Vegan': ['vegan'],
+      'Fast Food': ['fast food', 'quick', 'drive'],
+      'Cafe': ['cafe', 'coffee', 'espresso'],
+      'Bakery': ['bakery', 'bread', 'pastry'],
+      'Dessert': ['dessert', 'ice cream', 'sweet', 'gelato']
+    };
+    
+    // Check restaurant name for cuisine keywords
+    for (const [cuisine, keywords] of Object.entries(cuisineKeywords)) {
+      if (keywords.some(keyword => name.includes(keyword))) {
+        return cuisine;
+      }
+    }
+    
+    // Check Google Places types
+    if (types.includes('meal_takeaway') || types.includes('meal_delivery')) return 'Fast Food';
+    if (types.includes('cafe')) return 'Cafe';
+    if (types.includes('bakery')) return 'Bakery';
+    
+    return 'Other';
+  }
+
   function showSaved() {
     const container = document.querySelector('.cards');
+    const cuisineFilter = document.getElementById('cuisineFilter');
     container.innerHTML = '';
+    
     const saved = JSON.parse(localStorage.getItem('savedRestaurants') || '[]');
     if (saved.length === 0) {
       container.innerHTML = '<div class="error-message">No saved restaurants yet 😢<br>Start swiping right on restaurants you like to save them!</div>';
       return;
     }
-    saved.forEach(restaurant => {
+    
+    // Filter saved restaurants by cuisine if selected
+    const selectedCuisine = cuisineFilter.value;
+    let filteredSaved = saved;
+    
+    if (selectedCuisine) {
+      filteredSaved = saved.filter(restaurant => {
+        const restaurantCuisine = restaurant.cuisine || determineCuisineType(restaurant);
+        return restaurantCuisine.toLowerCase() === selectedCuisine.toLowerCase();
+      });
+    }
+    
+    if (filteredSaved.length === 0) {
+      const cuisineText = selectedCuisine ? ` matching ${selectedCuisine} cuisine` : '';
+      container.innerHTML = `<div class="error-message">No saved restaurants${cuisineText} found 😢<br>Try selecting a different cuisine type or save some restaurants first!</div>`;
+      return;
+    }
+    
+    filteredSaved.forEach(restaurant => {
       const card = document.createElement('div');
       card.className = 'location-card';
+      const cuisineType = restaurant.cuisine || determineCuisineType(restaurant);
       card.innerHTML = `
         <img src="${restaurant.photo}" alt="${restaurant.name}" />
         <h3>${restaurant.name}</h3>
         <p>⭐️ Rating: ${restaurant.rating}</p>
+        <p>🍽️ ${cuisineType}</p>
       `;
       container.appendChild(card);
     });
-    showMessage(`Showing ${saved.length} saved restaurants`, 'success');
+    
+    const cuisineText = selectedCuisine ? ` matching ${selectedCuisine} cuisine` : '';
+    showMessage(`Showing ${filteredSaved.length} saved restaurants${cuisineText}`, 'success');
   }
 
   // Manual location input function

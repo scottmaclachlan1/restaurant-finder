@@ -13,6 +13,38 @@
   <p>Find and save the best restaurant near you.</p>
 
   <div class="controls">
+    <div class="filter-section">
+      <label for="cuisineFilter">Filter by Cuisine:</label>
+      <select id="cuisineFilter">
+        <option value="">All Cuisines</option>
+        <option value="italian">Italian</option>
+        <option value="chinese">Chinese</option>
+        <option value="mexican">Mexican</option>
+        <option value="japanese">Japanese</option>
+        <option value="indian">Indian</option>
+        <option value="thai">Thai</option>
+        <option value="american">American</option>
+        <option value="french">French</option>
+        <option value="mediterranean">Mediterranean</option>
+        <option value="korean">Korean</option>
+        <option value="vietnamese">Vietnamese</option>
+        <option value="greek">Greek</option>
+        <option value="spanish">Spanish</option>
+        <option value="german">German</option>
+        <option value="brazilian">Brazilian</option>
+        <option value="middle_eastern">Middle Eastern</option>
+        <option value="seafood">Seafood</option>
+        <option value="steakhouse">Steakhouse</option>
+        <option value="pizza">Pizza</option>
+        <option value="sushi">Sushi</option>
+        <option value="vegetarian">Vegetarian</option>
+        <option value="vegan">Vegan</option>
+        <option value="fast_food">Fast Food</option>
+        <option value="cafe">Cafe</option>
+        <option value="bakery">Bakery</option>
+        <option value="dessert">Dessert</option>
+      </select>
+    </div>
     <button onclick="getLocationCachedOrNew()">Find Restaurant Near Me</button>
     <button onclick="useManualLocation()">Enter Location Manually</button>
     <button onclick="showSaved()">Show Saved Restaurant</button>
